@@ -1,0 +1,53 @@
+{
+  "name": "speakielts-ai",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20 <23"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build --turbopack",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "animejs": "^4.4.1",
+    "better-auth": "^1.6.14",
+    "framer-motion": "^12.15.0",
+    "kysely": "^0.28.17",
+    "lucide-react": "^0.511.0",
+    "next": "^15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "recharts": "^2.15.3",
+    "zod": "^3.25.42",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.1.8",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.15.29",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9.28.0",
+    "eslint-config-next": "^15.3.3",
+    "jsdom": "^26.1.0",
+    "postcss": "^8.5.4",
+    "prisma": "^6.9.0",
+    "tailwindcss": "^4.1.8",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}

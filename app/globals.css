@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf7;
+  --foreground: #101827;
+  --navy: #16213e;
+  --magenta: #d9277a;
+  --violet: #7b61ff;
+  --teal: #0e9488;
+  --amber: #f59e0b;
+  --muted: #667085;
+  --line: #e7e2da;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(135deg, rgba(217, 39, 122, 0.08), transparent 28%),
+    linear-gradient(45deg, rgba(14, 148, 136, 0.08), transparent 30%),
+    var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.lab-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.soft-card {
+  border: 1px solid rgba(22, 33, 62, 0.1);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 20px 70px rgba(22, 33, 62, 0.08);
+  backdrop-filter: blur(14px);
+  border-radius: 8px;
+}
+
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-ring:focus-visible {
+  outline-color: var(--magenta);
+}

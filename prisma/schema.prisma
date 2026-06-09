@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PracticeMode {
+  PART1
+  PART2
+  PART3
+  FULL_TEST
+  CUSTOM
+}
+
+enum SpeakingPart {
+  PART1
+  PART2
+  PART3
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id             String            @id @default(cuid())
+  name           String
+  email          String            @unique
+  emailVerified  Boolean           @default(false)
+  image          String?
+  role           UserRole          @default(USER)
+  targetBand     Float             @default(7)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @default(now()) @updatedAt
+  accounts       Account[]
+  authSessions   Session[]
+  sessions       SpeakingSession[]
+  progress       UserProgress?
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now()) @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([identifier])
+}
+
+model SpeakingSession {
+  id              String         @id @default(cuid())
+  userId          String
+  mode            PracticeMode
+  topic           String
+  targetBand      Float
+  startedAt       DateTime       @default(now())
+  endedAt         DateTime?
+  finalBand       Float?
+  durationSeconds Int            @default(0)
+  status          SessionStatus  @default(ACTIVE)
+  user            User           @relation(fields: [userId], references: [id])
+  turns           SpeakingTurn[]
+
+  @@index([userId, startedAt])
+}
+
+model SpeakingTurn {
+  id              String          @id @default(cuid())
+  sessionId       String
+  part            SpeakingPart
+  question        String
+  transcript      String
+  durationSeconds Int             @default(0)
+  estimatedBand   Float?
+  feedbackJson    Json?
+  audioUrl        String?
+  createdAt       DateTime        @default(now())
+  session         SpeakingSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, createdAt])
+}
+
+model UserProgress {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  avgBand               Float    @default(0)
+  fluencyAvg            Float    @default(0)
+  lexicalAvg            Float    @default(0)
+  grammarAvg            Float    @default(0)
+  pronunciationAvg      Float    @default(0)
+  totalSessions         Int      @default(0)
+  totalSpeakingMinutes  Float    @default(0)
+  updatedAt             DateTime @default(now()) @updatedAt
+  user                  User     @relation(fields: [userId], references: [id])
+}
