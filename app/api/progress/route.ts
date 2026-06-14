@@ -19,12 +19,39 @@ export async function GET(request: Request) {
     const minutes =
       sessions.reduce((sum, session) => sum + session.durationSeconds, 0) / 60;
 
+    const latestCompletedSession = await prisma.speakingSession.findFirst({
+      where: {
+        userId: user.id,
+        status: "COMPLETED",
+        finalBand: { not: null }
+      },
+      orderBy: { endedAt: "desc" },
+      include: {
+        evaluationJobs: {
+          where: { status: "COMPLETED" },
+          orderBy: { completedAt: "desc" },
+          take: 1
+        }
+      }
+    });
+
+    const latestFeedback = latestCompletedSession?.evaluationJobs[0]?.feedbackJson as any;
+    const subSkills = latestFeedback
+      ? {
+          fluency: latestFeedback.fluency_coherence?.band ?? 0,
+          lexical: latestFeedback.lexical_resource?.band ?? 0,
+          grammar: latestFeedback.grammar_range_accuracy?.band ?? 0,
+          pronunciation: latestFeedback.pronunciation?.band ?? 0
+        }
+      : null;
+
     return NextResponse.json({
       metrics: {
         avgBand: Number(avgBand.toFixed(1)),
         totalSessions: sessions.length,
         totalSpeakingMinutes: Number(minutes.toFixed(1)),
-        recentSessions: sessions.slice(-8)
+        recentSessions: sessions.slice(-8),
+        subSkills
       }
     });
   } catch (error) {

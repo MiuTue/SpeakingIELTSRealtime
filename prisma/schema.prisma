@@ -23,6 +23,8 @@ enum SpeakingPart {
 
 enum SessionStatus {
   ACTIVE
+  PAUSED
+  SCORING
   COMPLETED
   CANCELLED
 }
@@ -30,6 +32,32 @@ enum SessionStatus {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum MobilePlatform {
+  IOS
+  ANDROID
+}
+
+enum TurnSyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+}
+
+enum AudioUploadStatus {
+  PENDING
+  UPLOADING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum EvaluationJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 model User {
@@ -46,6 +74,7 @@ model User {
   authSessions   Session[]
   sessions       SpeakingSession[]
   progress       UserProgress?
+  mobileDevices  MobileDevice[]
 }
 
 model Session {
@@ -98,15 +127,23 @@ model SpeakingSession {
   mode            PracticeMode
   topic           String
   targetBand      Float
+  voice           String         @default("Aoede")
   startedAt       DateTime       @default(now())
   endedAt         DateTime?
   finalBand       Float?
   durationSeconds Int            @default(0)
   status          SessionStatus  @default(ACTIVE)
+  checkpointJson  Json?
+  pausedAt        DateTime?
+  resumedAt       DateTime?
+  version         Int            @default(1)
   user            User           @relation(fields: [userId], references: [id])
   turns           SpeakingTurn[]
+  audioAssets     AudioAsset[]
+  evaluationJobs  EvaluationJob[]
 
   @@index([userId, startedAt])
+  @@index([userId, status])
 }
 
 model SpeakingTurn {
@@ -119,10 +156,15 @@ model SpeakingTurn {
   estimatedBand   Float?
   feedbackJson    Json?
   audioUrl        String?
+  clientTurnId    String?
+  sequence        Int             @default(0)
+  syncStatus      TurnSyncStatus  @default(SYNCED)
   createdAt       DateTime        @default(now())
   session         SpeakingSession @relation(fields: [sessionId], references: [id])
+  audioAssets     AudioAsset[]
 
   @@index([sessionId, createdAt])
+  @@unique([sessionId, clientTurnId])
 }
 
 model UserProgress {
@@ -137,4 +179,58 @@ model UserProgress {
   totalSpeakingMinutes  Float    @default(0)
   updatedAt             DateTime @default(now()) @updatedAt
   user                  User     @relation(fields: [userId], references: [id])
+}
+
+model MobileDevice {
+  id             String         @id @default(cuid())
+  userId         String
+  installationId String
+  platform       MobilePlatform
+  appVersion     String
+  deviceName     String?
+  lastActiveAt   DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, installationId])
+  @@index([userId, lastActiveAt])
+}
+
+model AudioAsset {
+  id          String            @id @default(cuid())
+  sessionId   String
+  turnId      String?
+  storagePath String            @unique
+  contentType String
+  byteCount   Int?
+  status      AudioUploadStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @default(now()) @updatedAt
+  session     SpeakingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  turn        SpeakingTurn?     @relation(fields: [turnId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, createdAt])
+  @@index([expiresAt, status])
+}
+
+model EvaluationJob {
+  id             String              @id @default(cuid())
+  sessionId      String
+  idempotencyKey String
+  status         EvaluationJobStatus @default(QUEUED)
+  attemptCount   Int                 @default(0)
+  feedbackJson   Json?
+  errorCode      String?
+  errorMessage   String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @default(now()) @updatedAt
+  session        SpeakingSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, idempotencyKey])
+  @@index([sessionId, createdAt])
+  @@index([status, createdAt])
 }

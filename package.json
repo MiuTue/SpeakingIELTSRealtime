@@ -2,27 +2,39 @@
   "name": "speakielts-ai",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "mobile",
+    "packages/*"
+  ],
   "engines": {
     "node": ">=20 <23"
   },
   "scripts": {
     "dev": "next dev",
+    "dev:lan": "next dev -H 0.0.0.0",
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "mobile:start": "npm --workspace mobile run start",
+    "mobile:ios": "npm --workspace mobile run ios",
+    "mobile:typecheck": "npm --workspace mobile run typecheck",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
     "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@better-auth/expo": "1.6.14",
+    "@google/genai": "^2.8.0",
     "@prisma/client": "^6.9.0",
+    "@speakielts/contracts": "*",
     "animejs": "^4.4.1",
-    "better-auth": "^1.6.14",
+    "better-auth": "1.6.14",
     "framer-motion": "^12.15.0",
     "kysely": "^0.28.17",
     "lucide-react": "^0.511.0",

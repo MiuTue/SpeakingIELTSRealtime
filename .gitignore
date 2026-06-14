@@ -1,7 +1,9 @@
 .next
+.expo
 node_modules
 .env
 .env.local
+.data
 dist
 coverage
 prisma/dev.db

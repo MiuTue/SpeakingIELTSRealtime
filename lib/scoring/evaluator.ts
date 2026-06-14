@@ -27,7 +27,7 @@ export type EvaluateAnswerInput = {
   targetBand: number;
 };
 
-const DEFAULT_EVALUATOR_MODEL = "gemini-3.1-flash";
+const DEFAULT_EVALUATOR_MODEL = "gemini-2.5-flash-lite";
 const SCORING_TIMEOUT_MS = 45_000;
 
 export async function evaluateAnswer(

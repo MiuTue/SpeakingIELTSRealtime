@@ -1,6 +1,13 @@
+import { Trash2 } from "lucide-react";
 import type { SessionSummary } from "@/lib/types";
 
-export function SessionCard({ session }: { session: SessionSummary }) {
+export function SessionCard({
+  session,
+  onDelete
+}: {
+  session: SessionSummary;
+  onDelete?: (id: string) => void;
+}) {
   return (
     <article className="soft-card p-5">
       <div className="flex items-start justify-between gap-4">
@@ -8,9 +15,20 @@ export function SessionCard({ session }: { session: SessionSummary }) {
           <p className="text-sm font-semibold text-[var(--magenta)]">{session.mode.replace("_", " ")}</p>
           <h3 className="mt-1 text-lg font-semibold text-[var(--navy)]">{session.topic}</h3>
         </div>
-        <span className="rounded-md bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
-          {session.finalBand ? session.finalBand.toFixed(1) : "In progress"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-md bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+            {session.finalBand ? session.finalBand.toFixed(1) : "In progress"}
+          </span>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(session.id)}
+              className="rounded-md p-1.5 text-slate-400 hover:text-red-650 hover:bg-slate-50 transition-colors"
+              aria-label="Delete session"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
         <Metric label="Target" value={String(session.targetBand)} />

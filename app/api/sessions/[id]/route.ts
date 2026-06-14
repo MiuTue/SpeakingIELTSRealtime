@@ -34,3 +34,28 @@ export async function PATCH(request: Request, context: RouteContext) {
     return handleRouteError(error);
   }
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  try {
+    const { user } = await requireUser(request.headers);
+    const { id } = await context.params;
+    const session = await prisma.speakingSession.findFirst({
+      where: { id, userId: user.id }
+    });
+
+    if (!session) {
+      return jsonError("Session not found", 404);
+    }
+
+    await prisma.$transaction([
+      prisma.speakingTurn.deleteMany({ where: { sessionId: id } }),
+      prisma.speakingSession.delete({ where: { id } })
+    ]);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+    return handleRouteError(error);
+  }
+}
