@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { 
   Mic2, 
   Menu, 
   X, 
-  User, 
   LogOut, 
   Settings, 
   LayoutDashboard, 
@@ -149,9 +149,12 @@ export function Navbar() {
                 aria-label="User menu"
               >
                 {user.image ? (
-                  <img
+                  <Image
                     src={user.image}
                     alt={user.name}
+                    width={36}
+                    height={36}
+                    unoptimized
                     className="size-9 rounded-xl object-cover shadow-inner"
                   />
                 ) : (
@@ -294,9 +297,12 @@ export function Navbar() {
               <div className="space-y-3">
                 <div className="flex items-center gap-3 py-1">
                   {user.image ? (
-                    <img
+                    <Image
                       src={user.image}
                       alt={user.name}
+                      width={40}
+                      height={40}
+                      unoptimized
                       className="size-10 rounded-xl object-cover"
                     />
                   ) : (

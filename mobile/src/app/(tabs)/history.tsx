@@ -9,14 +9,14 @@ import {
   View
 } from "react-native";
 import { router } from "expo-router";
-import type { MobileSessionSummary } from "@speakielts/contracts";
+import type { MobileBootstrap, MobileSessionSummary } from "@speakielts/contracts";
 import { apiRequest } from "@/lib/api";
 import { readCache, writeCache } from "@/lib/cache";
 import { useNetwork } from "@/hooks/use-network";
 import { useAppStore } from "@/store/app-store";
 import { SessionCard } from "@/components/session-card";
 import { EmptyState, OfflineBanner } from "@/components/ui";
-import { colors, radius, spacing } from "@/theme";
+import { colors, spacing } from "@/theme";
 
 const HISTORY_CACHE_KEY = "history";
 
@@ -87,7 +87,7 @@ export default function HistoryScreen() {
               await writeCache(HISTORY_CACHE_KEY, updatedHistory);
               
               // Refresh bootstrap cache to sync dashboard averages
-              const freshBootstrap = await apiRequest<any>("/api/mobile/v1/bootstrap");
+              const freshBootstrap = await apiRequest<MobileBootstrap>("/api/mobile/v1/bootstrap");
               useAppStore.getState().setBootstrap(freshBootstrap);
               await writeCache("bootstrap", freshBootstrap);
             } catch (error) {

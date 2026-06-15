@@ -376,7 +376,7 @@ export default function LiveSessionScreen() {
         setStatus("error");
       }
     }),
-    [id, persistCheckpoint, persistTurn, scheduleReconnect]
+    [id, persistCheckpoint, persistTurn, scheduleReconnect, volumeShared]
   );
 
   const connect = useCallback(

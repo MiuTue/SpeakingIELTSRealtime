@@ -1,7 +1,9 @@
 import { ActivityIndicator, Dimensions, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { Redirect, router } from "expo-router";
+import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import type { SFSymbol } from "sf-symbols-typescript";
 import Animated, {
+  type SharedValue,
   useSharedValue,
   useAnimatedStyle,
   useAnimatedScrollHandler,
@@ -11,7 +13,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { authClient } from "@/lib/auth-client";
 import { PrimaryButton, SecondaryButton } from "@/components/ui";
-import { colors, radius, spacing } from "@/theme";
+import { colors, spacing } from "@/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -56,7 +58,7 @@ export default function Index() {
   return <OnboardingContent session={session} />;
 }
 
-function OnboardingContent({ session }: { session: any }) {
+function OnboardingContent({ session }: { session: { user: { id: string } } | null }) {
   const scrollX = useSharedValue(0);
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -94,7 +96,7 @@ function OnboardingContent({ session }: { session: any }) {
           {SLIDES.map((slide) => (
             <View key={slide.id} style={[styles.slide, { width: SCREEN_WIDTH }]}>
               <View style={[styles.iconContainer, { backgroundColor: slide.iconColor + "15" }]}>
-                <SymbolView name={slide.icon as any} tintColor={slide.iconColor} size={64} />
+              <SymbolView name={slide.icon as SFSymbol} tintColor={slide.iconColor} size={64} />
               </View>
               <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
               <Text style={styles.title}>{slide.title}</Text>
@@ -134,7 +136,7 @@ function OnboardingContent({ session }: { session: any }) {
   );
 }
 
-function IndicatorDot({ index, scrollX }: { index: number; scrollX: any }) {
+function IndicatorDot({ index, scrollX }: { index: number; scrollX: SharedValue<number> }) {
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [
       (index - 1) * SCREEN_WIDTH,

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import type { SFSymbol } from "sf-symbols-typescript";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -263,7 +264,7 @@ function Metric({
 }: {
   label: string;
   value: string | number;
-  icon: any;
+  icon: SFSymbol;
   iconColor: string;
 }) {
   return (

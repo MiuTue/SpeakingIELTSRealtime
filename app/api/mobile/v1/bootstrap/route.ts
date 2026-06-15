@@ -53,7 +53,8 @@ export async function GET(request: Request) {
     const totalSpeakingMinutes =
       sessions.reduce((sum, session) => sum + session.durationSeconds, 0) / 60;
 
-    const latestFeedback = latestCompletedSession?.evaluationJobs[0]?.feedbackJson as any;
+    const latestFeedback = latestCompletedSession?.evaluationJobs[0]?.feedbackJson as
+      Record<string, Record<string, number>> | undefined;
     const subSkills = latestFeedback
       ? {
           fluency: latestFeedback.fluency_coherence?.band ?? 0,

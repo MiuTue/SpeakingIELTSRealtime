@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { apiRequest } from "@/lib/api";
-import { Card, EmptyState, Screen, Title, uiStyles } from "@/components/ui";
+import { Card, EmptyState, Screen, uiStyles } from "@/components/ui";
 import { colors, radius, spacing } from "@/theme";
 
 type SkillFeedback = {
