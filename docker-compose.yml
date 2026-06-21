@@ -17,5 +17,27 @@ services:
       timeout: 5s
       retries: 10
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: speakielts-ai-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/speakielts_ai
+      BETTER_AUTH_SECRET: replace-with-at-least-32-random-characters
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      AUDIO_STORAGE_DIR: .data/audio
+      AUDIO_UPLOAD_SECRET: replace-with-at-least-32-random-characters
+    volumes:
+      - speakielts_audio_data:/app/.data/audio
+
 volumes:
   speakielts_postgres_data:
+  speakielts_audio_data:
