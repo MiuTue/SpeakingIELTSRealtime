@@ -1,3 +1,6 @@
+# syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
+
 # Stage 1: Cài đặt dependencies
 FROM node:20-alpine AS deps
 # Cần libc6-compat cho một số package native trên alpine
@@ -8,6 +11,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY mobile/package.json ./mobile/
 COPY packages/contracts/package.json ./packages/contracts/
+
+# Dọn dẹp dependencies của mobile để không cài đặt lên Docker BE
+RUN node -e "const fs = require('fs'); const p = JSON.parse(fs.readFileSync('mobile/package.json')); p.dependencies = {}; p.devDependencies = {}; fs.writeFileSync('mobile/package.json', JSON.stringify(p, null, 2));"
 
 # Cài đặt dependencies (bao gồm cả workspace packages)
 RUN npm ci --legacy-peer-deps

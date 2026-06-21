@@ -1,0 +1,12 @@
+node_modules
+.next
+.expo
+mobile/
+!mobile/package.json
+.git
+.github
+plans
+docs
+*.log
+.env
+.env*.local
