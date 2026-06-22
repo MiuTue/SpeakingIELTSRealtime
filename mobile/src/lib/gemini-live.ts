@@ -9,7 +9,10 @@ import {
 } from "@speechmatics/expo-two-way-audio";
 import { buildCandidateAudio, resamplePCM16, type CandidateAudio } from "@/lib/audio";
 
-const USER_SILENCE_MS = 1500;
+const USER_SILENCE_MS = 2000;
+const OUTPUT_SAMPLE_RATE = 16_000;
+const PCM16_BYTES_PER_SAMPLE = 2;
+const PLAYBACK_TAIL_GUARD_MS = 350;
 
 type GeminiSetup = {
   setup: Record<string, unknown>;
@@ -49,9 +52,12 @@ export class MobileGeminiLiveClient {
   private examinerTranscript = "";
   private candidateChunks: Uint8Array[] = [];
   private transcriptTimer: ReturnType<typeof setTimeout> | null = null;
+  private resumeListeningTimer: ReturnType<typeof setTimeout> | null = null;
   private lastExaminerTurn = "";
+  private playbackEndsAt = 0;
+  private microphoneMuted = false;
 
-  constructor(private readonly callbacks: LiveCallbacks) {}
+  constructor(private readonly callbacks: LiveCallbacks) { }
 
   async connect(input: {
     websocketUrl: string;
@@ -82,6 +88,7 @@ export class MobileGeminiLiveClient {
       };
       websocket.onclose = () => {
         this.acceptingCandidateAudio = false;
+        this.clearResumeListeningTimer();
         toggleRecording(false);
         this.callbacks.onDisconnected();
       };
@@ -100,13 +107,12 @@ export class MobileGeminiLiveClient {
   }
 
   resumeListening() {
-    this.acceptingCandidateAudio = true;
     this.candidateChunks = [];
-    toggleRecording(true);
-    this.callbacks.onListening();
+    this.enableListeningAfterPlayback();
   }
 
   setMuted(muted: boolean) {
+    this.microphoneMuted = muted;
     toggleRecording(!muted && this.acceptingCandidateAudio);
   }
 
@@ -114,6 +120,7 @@ export class MobileGeminiLiveClient {
     this.flushCandidateTurn();
     this.acceptingCandidateAudio = false;
     this.clearTranscriptTimer();
+    this.clearResumeListeningTimer();
     toggleRecording(false);
     this.websocket?.close();
     this.websocket = null;
@@ -131,6 +138,7 @@ export class MobileGeminiLiveClient {
       "onMicrophoneData",
       ({ data }) => {
         if (!this.acceptingCandidateAudio) return;
+        if (this.isPlaybackActive()) return;
         const chunk = new Uint8Array(data);
         this.candidateChunks.push(chunk);
         if (this.websocket?.readyState === WebSocket.OPEN) {
@@ -165,10 +173,10 @@ export class MobileGeminiLiveClient {
       const content = message.serverContent;
       if (!content) return;
       if (content.interrupted) {
-        this.examinerTranscript = "";
-        this.acceptingCandidateAudio = true;
-        toggleRecording(true);
-        this.callbacks.onListening();
+        if (!this.isPlaybackActive()) {
+          this.examinerTranscript = "";
+          this.enableListeningNow();
+        }
       }
       if (content.inputTranscription?.text && this.acceptingCandidateAudio) {
         this.handleCandidateTranscript(content.inputTranscription.text);
@@ -180,7 +188,9 @@ export class MobileGeminiLiveClient {
         if (!part.inlineData?.data) continue;
         this.handleModelOutputStarted();
         const pcm24 = Buffer.from(part.inlineData.data, "base64");
-        playPCMData(resamplePCM16(pcm24, 24_000, 16_000));
+        const pcm16 = resamplePCM16(pcm24, 24_000, OUTPUT_SAMPLE_RATE);
+        this.trackPlayback(pcm16);
+        playPCMData(pcm16);
       }
       if (content.turnComplete) {
         const transcript = normalizeTranscript(this.examinerTranscript);
@@ -189,10 +199,8 @@ export class MobileGeminiLiveClient {
           this.lastExaminerTurn = transcript;
           this.callbacks.onExaminerTurn(transcript);
         }
-        this.acceptingCandidateAudio = true;
         this.candidateChunks = [];
-        toggleRecording(true);
-        this.callbacks.onListening();
+        this.enableListeningAfterPlayback();
       }
     } catch {
       this.callbacks.onError(new Error("Gemini returned an unreadable message."));
@@ -220,6 +228,7 @@ export class MobileGeminiLiveClient {
   }
 
   private handleModelOutputStarted() {
+    this.clearResumeListeningTimer();
     if (this.acceptingCandidateAudio) this.flushCandidateTurn();
     this.acceptingCandidateAudio = false;
     toggleRecording(false);
@@ -242,6 +251,43 @@ export class MobileGeminiLiveClient {
   private clearTranscriptTimer() {
     if (this.transcriptTimer) clearTimeout(this.transcriptTimer);
     this.transcriptTimer = null;
+  }
+
+  private enableListeningAfterPlayback() {
+    this.clearResumeListeningTimer();
+    const delay = Math.max(
+      0,
+      this.playbackEndsAt + PLAYBACK_TAIL_GUARD_MS - Date.now()
+    );
+    if (delay <= 0) {
+      this.enableListeningNow();
+      return;
+    }
+    this.resumeListeningTimer = setTimeout(
+      () => this.enableListeningNow(),
+      delay
+    );
+  }
+
+  private enableListeningNow() {
+    this.acceptingCandidateAudio = true;
+    toggleRecording(!this.microphoneMuted);
+    this.callbacks.onListening();
+  }
+
+  private clearResumeListeningTimer() {
+    if (this.resumeListeningTimer) clearTimeout(this.resumeListeningTimer);
+    this.resumeListeningTimer = null;
+  }
+
+  private trackPlayback(pcm16: Uint8Array) {
+    const durationMs =
+      (pcm16.byteLength / PCM16_BYTES_PER_SAMPLE / OUTPUT_SAMPLE_RATE) * 1000;
+    this.playbackEndsAt = Math.max(Date.now(), this.playbackEndsAt) + durationMs;
+  }
+
+  private isPlaybackActive() {
+    return Date.now() < this.playbackEndsAt + PLAYBACK_TAIL_GUARD_MS;
   }
 
   private sendText(text: string) {
