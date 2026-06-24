@@ -109,21 +109,25 @@ export async function POST(request: Request, context: RouteContext) {
         console.error("Async evaluation failed for session:", sessionId, error);
         const message =
           error instanceof Error ? error.message.slice(0, 500) : "Scoring failed";
-        await prisma.$transaction([
-          prisma.evaluationJob.update({
-            where: { id: job.id },
-            data: {
-              status: "FAILED",
-              errorCode: "SCORING_FAILED",
-              errorMessage: message,
-              completedAt: new Date()
-            }
-          }),
-          prisma.speakingSession.update({
-            where: { id: sessionId },
-            data: { status: "PAUSED" }
-          })
-        ]);
+        try {
+          await prisma.$transaction([
+            prisma.evaluationJob.update({
+              where: { id: job.id },
+              data: {
+                status: "FAILED",
+                errorCode: "SCORING_FAILED",
+                errorMessage: message,
+                completedAt: new Date()
+              }
+            }),
+            prisma.speakingSession.update({
+              where: { id: sessionId },
+              data: { status: "PAUSED" }
+            })
+          ]);
+        } catch (dbError) {
+          console.error("Failed to update evaluation status to FAILED in database:", dbError);
+        }
       }
     });
 

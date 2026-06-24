@@ -84,6 +84,83 @@ export async function evaluateAnswer(
   }
 }
 
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit & { maxRetries?: number; baseDelayMs?: number },
+  signal?: AbortSignal
+): Promise<Response> {
+  const maxRetries = options.maxRetries ?? 3;
+  const baseDelayMs = options.baseDelayMs ?? 1000;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (signal?.aborted) {
+        throw new Error("Aborted");
+      }
+
+      const response = await fetch(url, { ...options, signal });
+
+      if (response.ok) {
+        return response;
+      }
+
+      const isTransientStatus =
+        response.status === 429 || (response.status >= 500 && response.status <= 599);
+
+      if (isTransientStatus && attempt < maxRetries) {
+        const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 500;
+        console.warn(
+          `Gemini API returned status ${response.status}. Retrying in ${Math.round(
+            delay
+          )}ms... (Attempt ${attempt + 1}/${maxRetries})`
+        );
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(resolve, delay);
+          if (signal) {
+            signal.addEventListener("abort", () => {
+              clearTimeout(timeout);
+              reject(new Error("Aborted"));
+            });
+          }
+        });
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      const isAbortError =
+        error instanceof Error &&
+        (error.name === "AbortError" || error.message === "Aborted");
+      if (isAbortError) {
+        throw error;
+      }
+
+      if (attempt < maxRetries) {
+        const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 500;
+        console.warn(
+          `Gemini API connection error: ${
+            error instanceof Error ? error.message : error
+          }. Retrying in ${Math.round(delay)}ms... (Attempt ${attempt + 1}/${maxRetries})`
+        );
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(resolve, delay);
+          if (signal) {
+            signal.addEventListener("abort", () => {
+              clearTimeout(timeout);
+              reject(new Error("Aborted"));
+            });
+          }
+        });
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Reached maximum retries");
+}
+
 async function requestFeedback(
   input: EvaluateAnswerInput,
   options: { apiKey: string; model: string; includeAudio: boolean }
@@ -93,41 +170,44 @@ async function requestFeedback(
 
   let response: Response;
   try {
-    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent?key=${options.apiKey}`, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [
-            {
-              text: buildEvaluatorPrompt(input)
-            }
-          ]
+    response = await fetchWithRetry(
+      `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent?key=${options.apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        contents: [
-          {
-            role: "user",
-            parts: buildScoringParts(input, options.includeAudio)
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [
+              {
+                text: buildEvaluatorPrompt(input)
+              }
+            ]
+          },
+          contents: [
+            {
+              role: "user",
+              parts: buildScoringParts(input, options.includeAudio)
+            }
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            candidateCount: 1,
+            responseMimeType: "application/json",
+            responseSchema: geminiSchema
           }
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          candidateCount: 1,
-          responseMimeType: "application/json",
-          responseSchema: geminiSchema
-        }
-      })
-    });
+        })
+      },
+      controller.signal
+    );
   } finally {
     clearTimeout(timeout);
   }
 
   if (!response.ok) {
     const errorBody = await response.text();
-    console.error("Gemini evaluator API failed:", response.status, errorBody);
+    console.error("Gemini evaluator API failed permanently after retries:", response.status, errorBody);
     throw new Error(`Gemini evaluator failed: ${response.status} - ${errorBody}`);
   }
 
