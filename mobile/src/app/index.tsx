@@ -1,5 +1,5 @@
 import { ActivityIndicator, Dimensions, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import type { SFSymbol } from "sf-symbols-typescript";
 import Animated, {
@@ -55,6 +55,10 @@ export default function Index() {
     );
   }
 
+  if (session) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   return <OnboardingContent session={session} />;
 }
 
@@ -82,6 +86,9 @@ function OnboardingContent({ session }: { session: { user: { id: string } } | nu
     <SafeAreaView style={styles.safe}>
       <Animated.View style={[styles.container, animatedBgStyle]}>
         <View style={styles.topLogo}>
+          <View style={styles.logoIconContainer}>
+            <SymbolView name="waveform.and.mic" tintColor={colors.white} size={18} />
+          </View>
           <Text style={styles.logoText}>SpeakIELTS AI</Text>
         </View>
 
@@ -193,8 +200,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F7FB"
   },
   topLogo: {
-    paddingTop: spacing.lg,
-    alignItems: "center"
+    paddingTop: spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm
+  },
+  logoIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3
   },
   logoText: {
     fontSize: 20,

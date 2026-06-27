@@ -31,6 +31,7 @@
   "dependencies": {
     "@better-auth/expo": "1.6.14",
     "@google/genai": "^2.8.0",
+    "@opentelemetry/api": "^1.9.1",
     "@prisma/client": "^6.9.0",
     "@speakielts/contracts": "*",
     "animejs": "^4.4.1",
@@ -42,6 +43,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.3",
+    "three": "^0.185.0",
     "zod": "^3.25.42",
     "zustand": "^5.0.5"
   },
@@ -52,6 +54,7 @@
     "@types/node": "^22.15.29",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
+    "@types/three": "^0.185.0",
     "eslint": "^9.28.0",
     "eslint-config-next": "^15.3.3",
     "jsdom": "^26.1.0",

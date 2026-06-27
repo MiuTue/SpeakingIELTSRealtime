@@ -14,7 +14,10 @@ import {
   LayoutDashboard, 
   History, 
   BookOpen, 
-  Shield 
+  Shield,
+  Home,
+  Users,
+  Lightbulb
 } from "lucide-react";
 
 export function Navbar() {
@@ -68,26 +71,32 @@ export function Navbar() {
 
   // Define navigation links based on auth state
   const authLinks = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/practice", label: "Practice", icon: BookOpen },
     { href: "/history", label: "History", icon: History },
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
+    { href: "/examiners", label: "AI Examiners", icon: Users },
+    { href: "/tips", label: "IELTS Tips", icon: Lightbulb }
   ];
 
   const guestLinks = [
-    { href: "/", label: "Home" },
-    { href: "/pricing", label: "Pricing" },
-    { href: "/faq", label: "FAQ" }
+    { href: "/", label: "Home", icon: Home },
+    { href: "/examiners", label: "AI Examiners", icon: Users },
+    { href: "/tips", label: "IELTS Tips", icon: Lightbulb }
   ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[var(--line)] bg-[#fbfaf7]/85 backdrop-blur-md transition-all duration-200">
       <div className="lab-shell flex h-16 items-center justify-between">
-        
         {/* Brand Logo */}
         <Link href="/" className="group flex items-center gap-2.5 font-bold text-[var(--navy)] text-lg transition-transform active:scale-95">
-          <span className="relative grid size-9 place-items-center rounded-xl bg-gradient-to-tr from-[var(--navy)] to-slate-800 text-white shadow-md shadow-slate-900/10">
-            <Mic2 size={18} />
-            <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-[var(--magenta)] border-2 border-[#fbfaf7] animate-pulse" />
+          <span className="relative flex size-9 items-center justify-center rounded-xl overflow-hidden shadow-md">
+            <Image
+              src="/logo.png"
+              alt="SpeakIELTS AI"
+              width={36}
+              height={36}
+              className="object-cover"
+            />
           </span>
           <span className="tracking-tight hover:text-[var(--magenta)] transition-colors">SpeakIELTS AI</span>
         </Link>
@@ -274,12 +283,13 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
                       active 
                         ? "text-[var(--magenta)] bg-pink-500/5" 
                         : "text-slate-600 hover:bg-slate-50"
                     }`}
                   >
+                    <link.icon size={16} className={active ? "text-[var(--magenta)]" : "text-slate-400"} />
                     {link.label}
                   </Link>
                 );
