@@ -119,7 +119,7 @@ export function ThreeBg() {
     window.addEventListener("mousemove", handleMouseMove);
 
     // 5. Animation Loop
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
     let animationFrameId: number;
 
     const animate = () => {

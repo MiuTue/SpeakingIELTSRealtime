@@ -1,9 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useSession } from "@/lib/auth-client";
 import { 
-  Users, 
   Volume2, 
   Sparkles, 
   Award, 
@@ -61,15 +57,12 @@ const examiners = [
 ];
 
 export default function ExaminersPage() {
-  const { data: session } = useSession();
-  const user = session?.user;
-
   return (
     <main className="min-h-[calc(100vh-64px)] py-16 px-4 sm:px-6 lg:px-8 relative bg-transparent">
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Page Header */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <p className="text-xs font-bold uppercase tracking-widest text-[var(--magenta)] bg-pink-500/10 px-3.5 py-1.5 rounded-full w-max mx-auto">
+          <p className="text-xs font-bold uppercase tracking-widest text-[var(--magenta)] bg-pink-500/10 px-3.5 py-1.5 rounded-full w-max mx-auto flex items-center gap-1.5">
             👥 Meet the Team
           </p>
           <h1 className="text-4xl font-extrabold text-[var(--navy)] sm:text-5xl tracking-tight leading-tight">
@@ -138,7 +131,7 @@ export default function ExaminersPage() {
               {/* Action Button */}
               <div className="mt-8 pt-4">
                 <Link 
-                  href={user ? "/practice" : "/sign-up"}
+                  href="/practice"
                   className="focus-ring w-full rounded-xl bg-gradient-to-r from-[var(--magenta)] to-[var(--violet)] py-3 px-4 font-bold text-white shadow-md shadow-pink-500/10 hover:brightness-105 active:scale-98 transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <span>Practice with {ex.name.split(" ")[1]}</span>
@@ -162,7 +155,7 @@ export default function ExaminersPage() {
             </p>
           </div>
           <Link 
-            href={user ? "/practice" : "/sign-up"}
+            href="/practice"
             className="rounded-xl bg-white px-6 py-3 font-bold text-slate-950 shadow-md hover:bg-slate-50 active:scale-95 transition-all duration-200 shrink-0 relative flex items-center gap-2"
           >
             <TrendingUp size={16} className="text-[var(--magenta)]" />

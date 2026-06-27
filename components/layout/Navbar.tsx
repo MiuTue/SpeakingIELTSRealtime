@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { 
-  Mic2, 
   Menu, 
   X, 
   LogOut, 
@@ -19,7 +18,6 @@ import {
   Users,
   Lightbulb
 } from "lucide-react";
-
 export function Navbar() {
   const { data: session, isPending } = useSession();
   const user = session?.user;

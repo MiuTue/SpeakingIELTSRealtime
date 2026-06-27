@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useSession } from "@/lib/auth-client";
 import { 
   Lightbulb, 
   CheckCircle, 
@@ -9,7 +6,6 @@ import {
   Mic, 
   BookOpen, 
   FileText,
-  Bookmark,
   ChevronRight,
   Sparkles
 } from "lucide-react";
@@ -46,9 +42,6 @@ const pillars = [
 ];
 
 export default function TipsPage() {
-  const { data: session } = useSession();
-  const user = session?.user;
-
   return (
     <main className="min-h-[calc(100vh-64px)] py-16 px-4 sm:px-6 lg:px-8 relative bg-transparent">
       <div className="max-w-6xl mx-auto space-y-12">
@@ -98,7 +91,7 @@ export default function TipsPage() {
                   </div>
                   <div className="space-y-2">
                     <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1">
-                      <XCircle size={10} /> Don't
+                      <XCircle size={10} /> Don&apos;t
                     </span>
                     <ul className="space-y-1.5">
                       {pillar.donts.map((item, idx) => (
@@ -174,7 +167,7 @@ export default function TipsPage() {
           </div>
           <div className="relative">
             <Link 
-              href={user ? "/practice" : "/sign-up"}
+              href="/practice"
               className="inline-flex rounded-xl bg-white px-8 py-3.5 font-bold text-[var(--navy)] shadow-md hover:bg-slate-50 active:scale-95 transition-all duration-200"
             >
               Start Practice Session

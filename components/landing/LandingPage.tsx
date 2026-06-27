@@ -5,7 +5,6 @@ import Link from "next/link";
 import { animate, createTimeline, stagger } from "animejs";
 import { 
   ArrowRight, 
-  CheckCircle2, 
   Headphones, 
   LineChart, 
   ShieldCheck, 
@@ -14,10 +13,8 @@ import {
   AlertCircle,
   Flame,
   Award,
-  Zap,
   Check
 } from "lucide-react";
-
 const features = [
   {
     title: "Realtime examiner",
@@ -107,12 +104,11 @@ export function LandingPage() {
               </div>
               <span className="rounded-lg bg-white/10 px-2.5 py-1 text-[10px] font-bold text-slate-300">IELTS Part 1</span>
             </div>
-
             {/* Prompt Screen */}
             <div className="my-10 flex flex-col justify-center min-h-[120px]">
               <span className="text-xs font-medium text-pink-400 mb-2">Question:</span>
               <p className="text-2xl font-bold leading-relaxed text-slate-100">
-                "Let’s talk about technology in your daily life. Do you use it often?"
+                &quot;Let’s talk about technology in your daily life. Do you use it often?&quot;
               </p>
             </div>
 
